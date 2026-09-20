@@ -10,13 +10,13 @@ Seldon is a quiet instrument for seeing agent-harness usage at a glance. Its nam
 
 The primary questions are: which account is being measured, how much of each quota window is used, when that window resets, and how current the measurement is?
 
-The inspected Lachesis response reports quota percentages, not token totals. The UI says **Usage**, **used**, and **reset**. It must not label percentages as token counts or invent a remaining-token estimate.
+The inspected usage response reports quota percentages, not token totals. The UI says **Usage**, **used**, and **reset**. It must not label percentages as token counts or invent a remaining-token estimate.
 
 ## Scope and non-goals
 
 Implement one dashboard, one connection sheet, source-reported freshness, initial loading, and an explicit manual refresh. Load once when the configured dashboard first appears. Do not introduce polling, auto-retry, retry backoff, stale thresholds, account switching, quota alerts, account management, historical collection, trend graphs, estimated costs, or notifications.
 
-Seldon consumes an existing HTTP endpoint exposed through an operator-managed SSH tunnel. It does not create or manage that tunnel, store SSH keys, change the server host's listener, or reconfigure Lachesis. Do not add an immersive scene, decorative 3D objects, particles, scan lines, blinking indicators, or ambient animation.
+Seldon consumes an existing HTTP endpoint exposed through an operator-managed network route. It does not create or manage that network route, store access credentials, change the server listener, or reconfigure usage server. Do not add an immersive scene, decorative 3D objects, particles, scan lines, blinking indicators, or ambient animation.
 
 ## Verified service contract and presentation
 
@@ -147,7 +147,7 @@ This is a current-snapshot comparison chart, not a time series. Do not draw spar
 
 ### ResetAgenda
 
-Title “Reported resets”. Show returned reset timestamps in ascending order, each with account label and window name. This is an agenda, not a predicted scheduler. Include the local date/time; for a reported timestamp already in the past, say “Reported Sep 20, 1:00 PM” rather than claiming a reset happened or rolling it forward. A small footer says “Times reported by Lachesis”. No live countdown, progress-to-reset estimate, or promise that capacity will become available.
+Title “Reported resets”. Show returned reset timestamps in ascending order, each with account label and window name. This is an agenda, not a predicted scheduler. Include the local date/time; for a reported timestamp already in the past, say “Reported Sep 20, 1:00 PM” rather than claiming a reset happened or rolling it forward. A small footer says “Times reported by usage server”. No live countdown, progress-to-reset estimate, or promise that capacity will become available.
 
 ## Responsive layout and morphing
 
@@ -189,23 +189,23 @@ Use 44 × 44 pt minimum interactive regions. The connection form appears as a na
 
 ### First launch
 
-Do not prefill a guessed endpoint or automatically call the server host by hostname. The empty dashboard uses `ContentUnavailableView` with title **Connect to Lachesis**, one short explanation, and the primary **Configure Connection** button.
+Do not prefill a guessed endpoint or automatically call a server by hostname. The empty dashboard uses `ContentUnavailableView` with title **Connect to usage server**, one short explanation, and the primary **Configure Connection** button.
 
 Exact explanatory copy:
 
-> View account usage from the Lachesis server through your existing SSH tunnel.
+> View account usage from your configured server.
 
 ### Connection sheet
 
 Title: **Connection**.
 
-One editable field, **Server URL**, with URL keyboard, no autocorrection, and no automatic capitalization. It stores the base HTTP(S) URL; the client appends the known service routes. The placeholder is **http://tunnel-host:port** and is an example, not a runnable endpoint. Existing settings populate the field when editing.
+One editable field, **Server URL**, with URL keyboard, no autocorrection, and no automatic capitalization. It stores the base HTTP(S) URL; the client appends the known service routes. The placeholder is **https://usage.example.com** and is an example, not a runnable endpoint. Existing settings populate the field when editing.
 
 Helper copy:
 
-> Lachesis listens only on the server host's loopback interface. Enter the HTTP address exposed by your existing SSH tunnel.
+> Enter the reachable HTTP or HTTPS address for your usage server.
 
-> On iPhone or Vision Pro, the tunnel endpoint must be reachable from this device. “localhost” refers to this device, not the server host or your Mac.
+> The server must be reachable from this device. “localhost” refers to this device.
 
 Actions: **Cancel** and **Save & Connect**. Saving stores the URL locally and loads usage from that address. Draft edits do not affect the active connection until Save & Connect is pressed. Cancel leaves the prior setting intact. Show the active server URL only in this connection sheet, not as a long dashboard heading.
 
@@ -219,9 +219,9 @@ These are direct representations of the requested operation, without a new backg
 | --- | --- |
 | No saved connection | First-launch configuration state above. |
 | Initial request in progress | Native indeterminate `ProgressView` labeled “Loading usage”; toolbar Connection remains available. No fake percentages or shimmering dummy values. |
-| Successful response with zero results | `ContentUnavailableView`: “No accounts reported”, “This Lachesis snapshot contains no accounts.” Keep the snapshot timestamp and Refresh action. |
+| Successful response with zero results | `ContentUnavailableView`: “No accounts reported”, “This usage snapshot contains no accounts.” Keep the snapshot timestamp and Refresh action. |
 | Successful response with per-account source errors | Show the returned account sections and their source Error badges. Healthy sections remain fully readable. |
-| Request fails before any snapshot | `ContentUnavailableView`: “Couldn’t load usage”, “Check the server URL and SSH tunnel, then refresh.” Buttons Refresh and Connection. Do not show raw response bodies. |
+| Request fails before any snapshot | `ContentUnavailableView`: “Couldn’t load usage”, “Check the server URL, then refresh.” Buttons Refresh and Connection. Do not show raw response bodies. |
 | Manual refresh in progress | Keep the currently displayed snapshot and its timestamp; replace Refresh's icon with a native progress indicator and disable that one action while the request is running. |
 | Manual refresh fails | Keep the previously displayed snapshot explicitly labeled “Previous snapshot”; show an inline “Refresh failed” message and the same manual Refresh action. Do not relabel source statuses or create client-defined staleness. |
 
@@ -270,6 +270,6 @@ With Reduce Motion enabled, update bar lengths and numeric text without interpol
 
 Implement the dashboard, connection form, and adaptive presentation above. Use the inspected service payload as the decoding authority. The primary visual is current quota utilization, so historical chart work is outside scope.
 
-No product-design decision is waiting on the user. The implementation must confirm exact field optionality, timestamp encoding, and safe label contents from the real normalized response. A real device connection also depends on an operator-provided tunnel endpoint reachable by that device; the design intentionally does not choose a tunnel transport or change server exposure.
+No product-design decision is waiting on the user. The implementation must confirm exact field optionality, timestamp encoding, and safe label contents from the real normalized response. A real device connection also depends on an operator-provided server endpoint reachable by that device; the design intentionally does not choose a tunnel transport or change server exposure.
 
 Review handoff terminology: the implementation is **ready for Flynn verification** after its build and checks; only Flynn confirms the product behavior.

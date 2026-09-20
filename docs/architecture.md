@@ -6,7 +6,7 @@ scene configuration and platform-specific navigation/toolbars are conditional.
 
 ## Boundaries
 
-- `Models` contains the verified normalized Lachesis response. It retains only
+- `Models` contains the verified normalized usage response. It retains only
   fields needed for presentation and stable internal identity. Raw provider
   payloads, account identifiers in user-facing text, and arbitrary diagnostic
   messages do not cross into views.

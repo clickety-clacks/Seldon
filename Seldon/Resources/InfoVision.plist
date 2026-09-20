@@ -28,6 +28,6 @@
 		<true/>
 	</dict>
 	<key>NSLocalNetworkUsageDescription</key>
-	<string>Seldon connects to the Lachesis server through your existing tunnel.</string>
+	<string>Seldon connects to your configured usage server.</string>
 </dict>
 </plist>

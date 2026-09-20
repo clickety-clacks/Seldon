@@ -93,7 +93,7 @@ struct DashboardView: View {
         }
 
         if snapshot.results.isEmpty {
-            ContentUnavailableView("No accounts reported", systemImage: "person.2", description: Text("This Lachesis snapshot contains no accounts."))
+            ContentUnavailableView("No accounts reported", systemImage: "person.2", description: Text("This usage snapshot contains no accounts."))
         } else {
             switch composition {
             case .compact:
@@ -135,9 +135,9 @@ struct DashboardView: View {
 
     private var connectionState: some View {
         ContentUnavailableView {
-            Label("Connect to Lachesis", systemImage: "network")
+            Label("Connect to usage server", systemImage: "network")
         } description: {
-            Text("View account usage from the Lachesis server through your existing SSH tunnel.")
+            Text("View account usage from your configured server.")
         } actions: {
             Button("Configure Connection", action: { isConnectionPresented = true })
                 .buttonStyle(.borderedProminent)
@@ -157,7 +157,7 @@ struct DashboardView: View {
         ContentUnavailableView {
             Label("Couldn't load usage", systemImage: "wifi.exclamationmark")
         } description: {
-            Text("Check the server URL and SSH tunnel, then refresh.")
+            Text("Check the server URL, then refresh.")
         } actions: {
             HStack {
                 Button("Refresh", action: refresh)

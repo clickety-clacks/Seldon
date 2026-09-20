@@ -18,7 +18,7 @@ struct ConnectionView: View {
         NavigationStack {
             Form {
                 Section {
-                    TextField("Server URL", text: $draftURL, prompt: Text("http://tunnel-host:port"))
+                    TextField("Server URL", text: $draftURL, prompt: Text("https://usage.example.com"))
                         .keyboardType(.URL)
                         .textInputAutocapitalization(.never)
                         .autocorrectionDisabled(true)
@@ -27,8 +27,8 @@ struct ConnectionView: View {
                         .onChange(of: draftURL) { _, _ in showInvalidURL = false }
                 } footer: {
                     VStack(alignment: .leading, spacing: SeldonSpacing.sm) {
-                        Text("Lachesis listens only on the server host's loopback interface. Enter the HTTP address exposed by your existing SSH tunnel.")
-                        Text("On iPhone or Vision Pro, the tunnel endpoint must be reachable from this device. “localhost” refers to this device, not the server host or your Mac.")
+                        Text("Enter the reachable HTTP or HTTPS address for your usage server.")
+                        Text("The server must be reachable from this device. “localhost” refers to this device.")
                         if showInvalidURL {
                             Text("Enter an HTTP or HTTPS server URL.")
                                 .foregroundStyle(.red)
