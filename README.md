@@ -4,6 +4,20 @@ Seldon is a SwiftUI usage dashboard for iPhone and Apple Vision Pro. Configure a
 
 The project uses shared SwiftUI models, services, state, design tokens, and views. It has separate iOS and visionOS app targets where platform-specific scene and navigation behavior differs.
 
+## Preview
+
+<p align="center">
+  <img src="docs/images/visionos-preview.png" alt="Seldon dashboard floating in Apple Vision Pro" width="760">
+</p>
+
+<p align="center">
+  <img src="docs/images/ios-preview.png" alt="Seldon dashboard on iPhone" width="300">
+</p>
+
+## Lachesis integration
+
+Seldon is a visual client for [Lachesis](https://github.com/clickety-clacks/lachesis), the usage service that provides its normalized account and quota snapshots. Configure Seldon with the reachable base URL for your Lachesis instance; it requests the usage snapshot from that address.
+
 ## What it shows
 
 - Account labels, provider, and plan when reported by the server
