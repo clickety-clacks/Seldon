@@ -22,12 +22,6 @@ struct DashboardView: View {
                 .navigationTitle("Seldon")
                 .navigationBarTitleDisplayMode(.inline)
                 .toolbar {
-                    ToolbarItem(placement: .topBarLeading) {
-                        Text("SELDON")
-                            .font(.title2.weight(.medium))
-                            .tracking(2)
-                            .accessibilityAddTraits(.isHeader)
-                    }
                     ToolbarItemGroup(placement: .topBarTrailing) {
                         Button(action: refresh) {
                             if model.isRefreshing {

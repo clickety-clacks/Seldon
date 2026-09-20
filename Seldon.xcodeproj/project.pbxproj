@@ -3,7 +3,7 @@
 	archiveVersion = 1;
 	classes = {
 	};
-	objectVersion = 63;
+	objectVersion = 77;
 	objects = {
 
 /* Begin PBXBuildFile section */
@@ -14,12 +14,14 @@
 		41F058C283E73C17FAE21D80 /* DashboardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B42D2BD46A29028A1EE426EE /* DashboardView.swift */; };
 		44263F3F7C90AE61F44364BC /* SeldonVisionApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = DB7050E7B9D43B750F7909AA /* SeldonVisionApp.swift */; };
 		449F0E4718C3376CC80533F6 /* ResetAgenda.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1E167F5F5DE43EF229EB7F9E /* ResetAgenda.swift */; };
+		4879C4272687EACC82969432 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = ADFD460FDBD3FAA3C42645FF /* Assets.xcassets */; };
 		561E193870595824CDB27E93 /* DesignTokens.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7F2A784D921749D415E7CDF9 /* DesignTokens.swift */; };
 		6AECC5FB6C5C30BA776AC612 /* UsageWindowRow.swift in Sources */ = {isa = PBXBuildFile; fileRef = DB9E1992F57FF2D59C29C575 /* UsageWindowRow.swift */; };
 		717EC3348F242E59D13D3121 /* UsageService.swift in Sources */ = {isa = PBXBuildFile; fileRef = B871BCCFD63A2C2C9769DC4A /* UsageService.swift */; };
 		741352571F8508B7D1875C4A /* UsageTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9F532AA3EC72D92C28871826 /* UsageTests.swift */; };
 		76291248C415E15B4E4A97E2 /* DashboardToolbar.swift in Sources */ = {isa = PBXBuildFile; fileRef = AF14CC85C27C1E9B7CB21920 /* DashboardToolbar.swift */; };
 		8ECA740B7C497410B9497768 /* UsageTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9F532AA3EC72D92C28871826 /* UsageTests.swift */; };
+		926B26CDE1FE4C99C77F7E01 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = ADFD460FDBD3FAA3C42645FF /* Assets.xcassets */; };
 		952DDC34927F8F086C8B98D5 /* AccountUsageCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3E363EC487BE89711C8D469D /* AccountUsageCard.swift */; };
 		994AF973D540F1704C73A603 /* UsageComparison.swift in Sources */ = {isa = PBXBuildFile; fileRef = 800F1AC4F033502B2BBA5E31 /* UsageComparison.swift */; };
 		9AF15237C1E240859417A847 /* SeldonApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 067153B133617AD320B23E9A /* SeldonApp.swift */; };
@@ -72,6 +74,7 @@
 		800F1AC4F033502B2BBA5E31 /* UsageComparison.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UsageComparison.swift; sourceTree = "<group>"; };
 		9381D2051CDBBB4060F5B741 /* ConnectionView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConnectionView.swift; sourceTree = "<group>"; };
 		9F532AA3EC72D92C28871826 /* UsageTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UsageTests.swift; sourceTree = "<group>"; };
+		ADFD460FDBD3FAA3C42645FF /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		AF14CC85C27C1E9B7CB21920 /* DashboardToolbar.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DashboardToolbar.swift; sourceTree = "<group>"; };
 		B42D2BD46A29028A1EE426EE /* DashboardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DashboardView.swift; sourceTree = "<group>"; };
 		B51056F29C9A0A45AAB5FC50 /* SourceStatusBadge.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SourceStatusBadge.swift; sourceTree = "<group>"; };
@@ -111,6 +114,7 @@
 			isa = PBXGroup;
 			children = (
 				D6671DF870C1D0F4C47C0172 /* App */,
+				E39482F96C4924BA425E7EC4 /* Resources */,
 				467C8DAB6C6D39C6329D2D6B /* Shared */,
 			);
 			path = Seldon;
@@ -180,6 +184,14 @@
 			path = Services;
 			sourceTree = "<group>";
 		};
+		E39482F96C4924BA425E7EC4 /* Resources */ = {
+			isa = PBXGroup;
+			children = (
+				ADFD460FDBD3FAA3C42645FF /* Assets.xcassets */,
+			);
+			path = Resources;
+			sourceTree = "<group>";
+		};
 		E67BB0D8177128FE080F3E2D /* SeldonTests */ = {
 			isa = PBXGroup;
 			children = (
@@ -232,6 +244,7 @@
 			buildConfigurationList = 6661B687D4BB6A64329B896B /* Build configuration list for PBXNativeTarget "SeldonVision" */;
 			buildPhases = (
 				5F1A20B33756C165B11CDFE5 /* Sources */,
+				9581B9833C159A9B6FC92E0B /* Resources */,
 			);
 			buildRules = (
 			);
@@ -249,6 +262,7 @@
 			buildConfigurationList = 6A7C93890026EE3B3CCFB47E /* Build configuration list for PBXNativeTarget "Seldon" */;
 			buildPhases = (
 				1357690C851423BF4A3AD556 /* Sources */,
+				4BB7A5AC2DA0FC0B27762826 /* Resources */,
 			);
 			buildRules = (
 			);
@@ -271,19 +285,19 @@
 				LastUpgradeCheck = 1430;
 				TargetAttributes = {
 					118A68FD01DD7157D702FDFD = {
-						DevelopmentTeam = "";
+						DevelopmentTeam = EXAMPLETEAM;
 						ProvisioningStyle = Automatic;
 					};
 					129FFD0E74EEBA7925EF14B6 = {
-						DevelopmentTeam = "";
+						DevelopmentTeam = EXAMPLETEAM;
 						ProvisioningStyle = Automatic;
 					};
 					A32E5DC5B6A857C8E6FECDCE = {
-						DevelopmentTeam = "";
+						DevelopmentTeam = EXAMPLETEAM;
 						ProvisioningStyle = Automatic;
 					};
 					E6BD5C44513BBEEFB76379BF = {
-						DevelopmentTeam = "";
+						DevelopmentTeam = EXAMPLETEAM;
 						ProvisioningStyle = Automatic;
 					};
 				};
@@ -298,6 +312,7 @@
 			);
 			mainGroup = 1778C6B87B8E10B33DC6F4FE;
 			minimizedProjectReferenceProxies = 1;
+			preferredProjectObjectVersion = 77;
 			projectDirPath = "";
 			projectRoot = "";
 			targets = (
@@ -308,6 +323,25 @@
 			);
 		};
 /* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		4BB7A5AC2DA0FC0B27762826 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				926B26CDE1FE4C99C77F7E01 /* Assets.xcassets in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		9581B9833C159A9B6FC92E0B /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				4879C4272687EACC82969432 /* Assets.xcassets in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
 		1357690C851423BF4A3AD556 /* Sources */ = {
@@ -440,7 +474,7 @@
 				COPY_PHASE_STRIP = NO;
 				CURRENT_PROJECT_VERSION = 1;
 				DEBUG_INFORMATION_FORMAT = dwarf;
-				DEVELOPMENT_TEAM = "";
+				DEVELOPMENT_TEAM = EXAMPLETEAM;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				ENABLE_TESTABILITY = YES;
 				ENABLE_USER_SCRIPT_SANDBOXING = YES;
@@ -509,7 +543,7 @@
 		7CF4EDED3CD5AF6C3A458FCC /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_APPICON_NAME = SeldonVisionAppIcon;
 				GENERATE_INFOPLIST_FILE = NO;
 				INFOPLIST_FILE = Seldon/Resources/InfoVision.plist;
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -559,7 +593,7 @@
 				COPY_PHASE_STRIP = NO;
 				CURRENT_PROJECT_VERSION = 1;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
-				DEVELOPMENT_TEAM = "";
+				DEVELOPMENT_TEAM = EXAMPLETEAM;
 				ENABLE_NS_ASSERTIONS = NO;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				ENABLE_USER_SCRIPT_SANDBOXING = YES;
@@ -621,7 +655,7 @@
 		D10B489E5B4995A820F10681 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_APPICON_NAME = SeldonVisionAppIcon;
 				GENERATE_INFOPLIST_FILE = NO;
 				INFOPLIST_FILE = Seldon/Resources/InfoVision.plist;
 				LD_RUNPATH_SEARCH_PATHS = (
