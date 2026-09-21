@@ -3,6 +3,7 @@ import SwiftUI
 struct AccountUsageCard: View {
     let result: UsageResult
     let spacious: Bool
+    let forecast: UsageForecastAccount?
 
     private var sample: UsageSample? { result.sample }
 
@@ -10,6 +11,9 @@ struct AccountUsageCard: View {
         VStack(alignment: .leading, spacing: SeldonSpacing.md) {
             header
             if let sample {
+                if let forecast, result.status != .error {
+                    AccountRunwaySummary(account: forecast)
+                }
                 VStack(alignment: .leading, spacing: SeldonSpacing.md) {
                     ForEach(sample.windows) { window in
                         UsageWindowRow(accountLabel: displayLabel(for: sample), window: window, spacious: spacious)
@@ -20,6 +24,9 @@ struct AccountUsageCard: View {
                 Text("Account unavailable")
                     .font(.body)
                     .foregroundStyle(.secondary)
+                if let forecast {
+                    AccountRunwaySummary(account: forecast, allowsEstimate: false)
+                }
             }
         }
         .padding(spacious ? 20 : SeldonSpacing.md)

@@ -24,14 +24,14 @@ struct DashboardView: View {
                 .toolbar {
                     ToolbarItemGroup(placement: .topBarTrailing) {
                         Button(action: refresh) {
-                            if model.isRefreshing {
+                            if model.isRefreshing || model.isForecastLoading {
                                 ProgressView().controlSize(.small)
                             } else {
                                 Label("Refresh", systemImage: "arrow.clockwise")
                             }
                         }
-                        .disabled(model.isRefreshing || !model.hasConnection)
-                        .accessibilityLabel(model.isRefreshing ? "Refreshing usage" : "Refresh")
+                        .disabled(model.isRefreshing || model.isForecastLoading || !model.hasConnection)
+                        .accessibilityLabel(model.isRefreshing || model.isForecastLoading ? "Refreshing usage" : "Refresh")
                         Button(action: { isConnectionPresented = true }) {
                             Label("Connection", systemImage: "network")
                         }
@@ -42,7 +42,7 @@ struct DashboardView: View {
         content
             .toolbar {
                 ToolbarItem(placement: .primaryAction) {
-                    DashboardToolbar(isRefreshing: model.isRefreshing, onRefresh: refresh, onConnection: { isConnectionPresented = true })
+                DashboardToolbar(isBusy: model.isRefreshing || model.isForecastLoading, onRefresh: refresh, onConnection: { isConnectionPresented = true })
                 }
             }
         #endif
@@ -95,38 +95,44 @@ struct DashboardView: View {
         if snapshot.results.isEmpty {
             ContentUnavailableView("No accounts reported", systemImage: "person.2", description: Text("This usage snapshot contains no accounts."))
         } else {
+            if let forecast = model.forecast {
+                UsageRunway(forecast: forecast, spacious: composition != .compact)
+            } else {
+                UsageRunwayUnavailable(isLoading: model.isForecastLoading)
+            }
+
             switch composition {
             case .compact:
-                cards(snapshot.results, spacious: false)
+                cards(snapshot.results, spacious: false, forecast: model.forecast)
             case .spaciousCards:
-                cards(snapshot.results, spacious: true)
+                cards(snapshot.results, spacious: true, forecast: model.forecast)
             case .comparison:
-                comparison(snapshot.results, width: width)
+                comparison(snapshot.results, width: width, forecast: model.forecast)
             }
         }
     }
 
-    private func cards(_ results: [UsageResult], spacious: Bool) -> some View {
+    private func cards(_ results: [UsageResult], spacious: Bool, forecast: UsageForecastSnapshot?) -> some View {
         let columns = spacious ? [GridItem(.flexible(minimum: 300)), GridItem(.flexible(minimum: 300))] : [GridItem(.flexible())]
         return LazyVGrid(columns: columns, spacing: SeldonSpacing.md) {
             ForEach(results) { result in
-                AccountUsageCard(result: result, spacious: spacious)
+                AccountUsageCard(result: result, spacious: spacious, forecast: forecast?.accounts.first(where: { $0.accountID == result.accountID }))
             }
         }
     }
 
-    private func comparison(_ results: [UsageResult], width: CGFloat) -> some View {
+    private func comparison(_ results: [UsageResult], width: CGFloat, forecast: UsageForecastSnapshot?) -> some View {
         let sideBySide = width >= 1_200
         return Group {
             if sideBySide {
                 HStack(alignment: .top, spacing: SeldonSpacing.lg) {
-                    UsageComparison(results: results)
+                    UsageComparison(results: results, forecast: forecast)
                     ResetAgenda(results: results)
                         .frame(width: 280)
                 }
             } else {
                 VStack(alignment: .leading, spacing: SeldonSpacing.lg) {
-                    UsageComparison(results: results)
+                    UsageComparison(results: results, forecast: forecast)
                     ResetAgenda(results: results)
                 }
             }

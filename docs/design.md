@@ -8,13 +8,13 @@ This file is the design source of truth for the shared SwiftUI iOS and visionOS 
 
 Seldon is a quiet instrument for seeing agent-harness usage at a glance. Its name recalls Foundation's forecaster, connecting science-fiction literature to the product's function rather than its infrastructure. Its interface expresses that influence through precise typography, cool light, clear measurements, and generous negative space. It should look at home floating beside a working Vision Pro window and remain useful on an iPhone.
 
-The primary questions are: which account is being measured, how much of each quota window is used, when that window resets, and how current the measurement is?
+The primary questions are: which account is being measured, how much of each quota window is used, when that window resets, how much observed runway remains, and how current the measurement is?
 
 The inspected usage response reports quota percentages, not token totals. The UI says **Usage**, **used**, and **reset**. It must not label percentages as token counts or invent a remaining-token estimate.
 
 ## Scope and non-goals
 
-Implement one dashboard, one connection sheet, source-reported freshness, initial loading, and an explicit manual refresh. Load once when the configured dashboard first appears. Do not introduce polling, auto-retry, retry backoff, stale thresholds, account switching, quota alerts, account management, historical collection, trend graphs, estimated costs, or notifications.
+Implement one dashboard, one connection sheet, source-reported freshness, initial loading, an explicit manual refresh, and the optional server forecast. Load once when the configured dashboard first appears. Do not introduce polling, auto-retry, retry backoff, client-defined stale thresholds, account switching, quota alerts, account management, client-side history collection, trend graphs, estimated costs, or notifications. Lachesis owns forecast history and burn calculations; Seldon only presents its result.
 
 Seldon consumes an existing HTTP endpoint exposed through an operator-managed network route. It does not create or manage that network route, store access credentials, change the server listener, or reconfigure usage server. Do not add an immersive scene, decorative 3D objects, particles, scan lines, blinking indicators, or ambient animation.
 
@@ -58,6 +58,14 @@ GET /api/v1/usage
 Use `account_id` and window `id` internally for stable identity only. Never display account IDs, email addresses, credentials, the `raw` object, or arbitrary backend error/diagnostic text. The initial UI may show “Service reported an issue” for a diagnostic-bearing sample; adding human-readable diagnostic detail requires confirming that the actual messages are suitable for display. Do not serialize raw payloads into UI debug overlays or fixtures.
 
 Do not sum or average utilization across windows or accounts: the denominators differ. Preserve the service's account and window order in the main dashboard. “Next resets” is the one explicitly time-sorted projection.
+
+### Forecast contract
+
+Seldon requests `GET /api/v1/usage/forecast` alongside the current usage snapshot. The response contains `generated_at`, an overall `status`, per-account forecasts, and separate `pools`. Account forecasts include provider, optional plan, account health, history coverage, an optional `exhaustion_at`, and forecast windows. Pool entries include provider, optional known plan, window ID and duration, a `comparable` flag, member labels and statuses, and an optional pooled `exhaustion_at`.
+
+The server owns the forecast statuses and rate calculation. Seldon shows a finite runway only for the allowlisted numeric states `estimated` and `estimated_qualified`, after checking account health and history error. It labels server states such as `zero_burn`, `insufficient_history`, `stale`, `reauth_required`, and `resets_before_exhaustion` directly with short, human-readable copy. `estimated` with a window status of `exhausted` says “Exhausted”; a predicted time that has passed says “Estimated depleted” so the client does not invent a new exhaustion state. The displayed duration is measured from the forecast's own `generated_at`, so an old snapshot does not look like a live countdown.
+
+Diagnostic and qualification messages are reduced to presence flags. Seldon never displays arbitrary backend diagnostic text. Compatible pools are shown separately from per-account runway and are never combined across providers, plans, window IDs, or durations. A pool's qualification remains visible when a member lacks a finite rate estimate. The pool note says that work can move between matching accounts, which is the server's pooling assumption.
 
 ### Contract boundaries
 
@@ -108,8 +116,9 @@ Use a shared spacing scale: 4, 8, 12, 16, 24, 32 pt. Account group radius is 20 
 
 1. **DashboardToolbar**: wordmark at leading; Refresh and Connection at trailing. Use system symbols `arrow.clockwise` and `network`, with actual text labels for accessibility. At spacious widths show visible “Refresh” and “Connection” labels. At compact widths icons suffice visually. Refresh is one action, not a menu. Connection opens the connection sheet.
 2. **SnapshotHeader**: “Usage”, account count, source count summary, snapshot timestamp. On iPhone the navigation title is “Seldon” and the content header uses the account count and snapshot summary without a duplicate large app title. The account count is the number of returned account results, including errored results.
-3. **AccountUsageCard / UsageComparison**: account title and provider/plan, source badge, every reported window, observation metadata. Compact and expanded views are presentations of the same data and identifiers.
-4. **ResetAgenda**: expanded-only secondary projection listing reported reset times, account labels, and window names. Main usage rows always retain their own reset text, so shrinking never hides required information.
+3. **AccountUsageCard / UsageComparison**: account title and provider/plan, source badge, every reported window, observation metadata, and a compact server runway summary when a forecast is available. Compact and expanded views are presentations of the same data and identifiers.
+4. **UsageRunway**: a forecast header and separate combined-runway cards for comparable pools. Each card keeps provider, plan, window, member labels, server status, and the pooling assumption visible. It never merges incompatible pools.
+5. **ResetAgenda**: expanded-only secondary projection listing reported reset times, account labels, and window names. Main usage rows always retain their own reset text, so shrinking never hides required information.
 
 Use real `Button`, `Label`, `ProgressView`, and native sheet/form elements where appropriate. The account cards and chart bars themselves are read-only and must not look like buttons.
 
@@ -157,7 +166,7 @@ Measure the actual content container, not the device model or `UIScreen.main`. A
 | --- | --- | --- |
 | Under 680 pt | One vertical stream; compact header; single account column. | 8 pt per-window meters inside account cards. |
 | 680–1,039 pt | Spacious header; two equal account columns, each at least 300 pt; shared vertical scrolling. | Same cards with additional breathing room and 10 pt tracks. |
-| 1,040 pt and wider | Spacious header; main comparison region plus a 280 pt reset agenda, separated by 24 pt. | Aligned 12 pt usage bars and shared axis; reset agenda uses newly available space. |
+| 1,040 pt and wider | Spacious header; combined runway and main comparison region plus a 280 pt reset agenda, separated by 24 pt. | Aligned 12 pt usage bars and shared axis; runway and reset agenda use newly available space. |
 
 At 1,040 pt the comparison region can be tight: if its text and minimum plot columns cannot fit, the reset agenda moves below the comparison rather than squeezing labels. At 1,200 pt and above the agenda is beside the comparison. Overall content is centered with a maximum readable width of 1,560 pt. Beyond that, margins grow; type and bars do not become billboard-sized. The design does not add a third or fourth account-card column.
 
@@ -220,7 +229,8 @@ These are direct representations of the requested operation, without a new backg
 | No saved connection | First-launch configuration state above. |
 | Initial request in progress | Native indeterminate `ProgressView` labeled “Loading usage”; toolbar Connection remains available. No fake percentages or shimmering dummy values. |
 | Successful response with zero results | `ContentUnavailableView`: “No accounts reported”, “This usage snapshot contains no accounts.” Keep the snapshot timestamp and Refresh action. |
-| Successful response with per-account source errors | Show the returned account sections and their source Error badges. Healthy sections remain fully readable. |
+| Successful response with per-account source errors | Show the returned account sections and their source Error badges. Healthy sections remain fully readable. Forecast summaries for an unavailable account say “Account unavailable” and never show a numeric ETA. |
+| Forecast request fails or the server predates the forecast endpoint | Keep the usage snapshot visible. Show “Usage runway unavailable” and clear any previous runway so an old ETA does not remain beside current usage. |
 | Request fails before any snapshot | `ContentUnavailableView`: “Couldn’t load usage”, “Check the server URL, then refresh.” Buttons Refresh and Connection. Do not show raw response bodies. |
 | Manual refresh in progress | Keep the currently displayed snapshot and its timestamp; replace Refresh's icon with a native progress indicator and disable that one action while the request is running. |
 | Manual refresh fails | Keep the previously displayed snapshot explicitly labeled “Previous snapshot”; show an inline “Refresh failed” message and the same manual Refresh action. Do not relabel source statuses or create client-defined staleness. |
@@ -244,7 +254,7 @@ With Reduce Motion enabled, update bar lengths and numeric text without interpol
 
 ## SwiftUI implementation constraints
 
-- Keep one observable dashboard state owner in a stable parent using `@Observable` and native Swift concurrency. The network service and decoded snapshot are shared by all layouts; card/comparison/agenda views are projections, not separate fetching controllers.
+- Keep one observable dashboard state owner in a stable parent using `@Observable` and native Swift concurrency. The network service and decoded usage/forecast snapshots are shared by all layouts; card/comparison/runway/agenda views are projections, not separate fetching controllers.
 - Put connection draft state and focus state in the sheet's stable root. Avoid `.id(width)` or `.id(snapshotTimestamp)` on state-owning views. Breakpoint changes must not recreate the connection state or initiate requests.
 - Use actual container width and Dynamic Type to choose composition. `ViewThatFits`, adaptive layout, or a focused `Layout` implementation are appropriate; do not use global screen dimensions or inspect the hardware model.
 - Keep visual constants in one shared design-token definition. Split concrete components into appropriately named files: `DashboardView`, `DashboardToolbar`, `SnapshotHeader`, `AccountUsageCard`, `UsageWindowRow`, `UsageComparison`, `ResetAgenda`, `SourceStatusBadge`, and `ConnectionView`. These are component boundaries, not a requirement for extra abstraction layers.

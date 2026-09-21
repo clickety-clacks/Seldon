@@ -6,15 +6,20 @@ scene configuration and platform-specific navigation/toolbars are conditional.
 
 ## Boundaries
 
-- `Models` contains the verified normalized usage response. It retains only
-  fields needed for presentation and stable internal identity. Raw provider
-  payloads, account identifiers in user-facing text, and arbitrary diagnostic
-  messages do not cross into views.
-- `Services` owns HTTP transport and local connection persistence. The service
-  protocol makes state and previews testable without a network dependency.
+- `Models` contains the verified normalized usage and forecast responses. It
+  retains only fields needed for presentation and stable internal identity. Raw
+  provider payloads, account identifiers in user-facing text, and arbitrary
+  diagnostic or qualification messages do not cross into views.
+- `Services` owns HTTP transport and local connection persistence. It requests
+  the current snapshot and optional forecast from the same configured base URL.
+  The service protocol makes state and previews testable without a network
+  dependency.
 - `State` contains one `@Observable @MainActor` dashboard owner. It performs
-  initial and explicit manual loads, preserves the last snapshot on refresh
-  failure, and clears it when a different saved server is selected.
+  initial and explicit manual loads, preserves the last usage snapshot on
+  refresh failure, clears forecast data at the start of every refresh, and
+  clears both snapshots when a different saved server is selected. Each load
+  has a generation so an older usage or forecast response cannot overwrite a
+  newer connection.
 - `Design` is the single home for spacing, color, typography, and geometry
   tokens shared by both platforms.
 - `Views` are feature-oriented projections of the shared state. Card, aligned
@@ -37,9 +42,17 @@ they never recreate the model or initiate a request.
 
 `GET /api/v1/usage` is decoded as the inspected normalized shape. Timestamps
 are ISO-8601 strings; percentages and window durations are numeric; source
-statuses and snapshot count keys are exact. Unknown or unused fields are
-ignored. Diagnostic and error keys are reduced to presence markers so the UI
-can show the generic service-issue copy without exposing backend text.
+statuses and snapshot count keys are exact. `GET /api/v1/usage/forecast` is
+decoded as the inspected aggregate shape with per-account forecasts and
+separate compatible pools. Unknown or unused fields are ignored. Diagnostic,
+error, and qualification keys are reduced to presence markers so the UI can
+show safe qualification copy without exposing backend text.
+
+The forecast is optional for compatibility with older servers. A forecast
+failure does not fail a usage load. The state owner exposes the current usage
+snapshot with a runway-unavailable state and never retains an ETA from the
+previous refresh. Runway durations use the forecast's `generated_at` as their
+reference time, so the UI does not create a countdown ticker.
 
 ## Responsive composition
 
