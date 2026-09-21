@@ -78,19 +78,26 @@ struct AccountRunwaySummary: View {
                 Text("Current account sample unavailable")
                     .font(.footnote)
                     .foregroundStyle(.secondary)
-            } else if account.hasQualification || account.hasDiagnostics {
-                Text(account.hasQualification ? "Estimate qualified because some limits have no finite estimate." : "Estimate has limitations.")
-                    .font(.footnote)
-                    .foregroundStyle(.secondary)
-                    .fixedSize(horizontal: false, vertical: true)
-            } else if account.status == "insufficient_history" || account.status == "windows_missing" {
-                Text("Collecting history from the usage server")
-                    .font(.footnote)
-                    .foregroundStyle(.secondary)
-            } else if account.status == "estimated", account.coverageHours.isFinite {
-                Text(UsageForecastFormatters.coverage(account.coverageHours))
-                    .font(.footnote)
-                    .foregroundStyle(.secondary)
+            } else {
+                if account.windows.contains(where: { $0.status == "resets_before_exhaustion" }) {
+                    Text("One window resets before depletion.")
+                        .font(.footnote)
+                        .foregroundStyle(.secondary)
+                }
+                if account.hasQualification || account.hasDiagnostics {
+                    Text(account.hasQualification ? "Estimate qualified because some limits have no finite estimate." : "Estimate has limitations.")
+                        .font(.footnote)
+                        .foregroundStyle(.secondary)
+                        .fixedSize(horizontal: false, vertical: true)
+                } else if account.status == "insufficient_history" || account.status == "windows_missing" {
+                    Text("Collecting history from the usage server")
+                        .font(.footnote)
+                        .foregroundStyle(.secondary)
+                } else if account.status == "estimated", account.coverageHours.isFinite {
+                    Text(UsageForecastFormatters.coverage(account.coverageHours))
+                        .font(.footnote)
+                        .foregroundStyle(.secondary)
+                }
             }
         }
         .padding(.top, SeldonSpacing.xs)
@@ -107,11 +114,17 @@ struct AccountRunwaySummary: View {
         if !allowsEstimate {
             return "Current account sample unavailable"
         }
-        if account.hasQualification {
-            return "Estimate qualified because some limits have no finite estimate"
+        var details: [String] = []
+        if account.windows.contains(where: { $0.status == "resets_before_exhaustion" }) {
+            details.append("One window resets before depletion")
         }
-        if account.hasDiagnostics {
-            return "Estimate has limitations"
+        if account.hasQualification {
+            details.append("Estimate qualified because some limits have no finite estimate")
+        } else if account.hasDiagnostics {
+            details.append("Estimate has limitations")
+        }
+        if !details.isEmpty {
+            return details.joined(separator: ". ")
         }
         if account.status == "insufficient_history" || account.status == "windows_missing" {
             return "Collecting history from the usage server"
