@@ -3,6 +3,7 @@ import SwiftUI
 struct AccountUsageCard: View {
     let result: UsageResult
     let spacious: Bool
+    let forecast: UsageForecastAccount? = nil
 
     private var sample: UsageSample? { result.sample }
 
@@ -15,11 +16,17 @@ struct AccountUsageCard: View {
                         UsageWindowRow(accountLabel: displayLabel(for: sample), window: window, spacious: spacious)
                     }
                 }
+                if let forecast, result.status != .error {
+                    AccountRunwaySummary(account: forecast)
+                }
                 footer(sample)
             } else {
                 Text("Account unavailable")
                     .font(.body)
                     .foregroundStyle(.secondary)
+                if let forecast {
+                    AccountRunwaySummary(account: forecast, allowsEstimate: false)
+                }
             }
         }
         .padding(spacious ? 20 : SeldonSpacing.md)

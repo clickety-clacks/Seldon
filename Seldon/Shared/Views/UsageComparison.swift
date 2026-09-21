@@ -2,6 +2,7 @@ import SwiftUI
 
 struct UsageComparison: View {
     let results: [UsageResult]
+    let forecast: UsageForecastSnapshot? = nil
 
     var body: some View {
         VStack(alignment: .leading, spacing: SeldonSpacing.lg) {
@@ -65,6 +66,9 @@ struct UsageComparison: View {
             }
 
             if let sample = result.sample {
+                if let accountForecast = forecast?.accounts.first(where: { $0.accountID == result.accountID }), result.status != .error {
+                    AccountRunwaySummary(account: accountForecast)
+                }
                 ForEach(sample.windows) { window in
                     HStack(alignment: .firstTextBaseline, spacing: SeldonSpacing.sm) {
                         Text(window.name)
@@ -103,6 +107,9 @@ struct UsageComparison: View {
                 Text("Account unavailable")
                     .font(.body)
                     .foregroundStyle(.secondary)
+                if let accountForecast = forecast?.accounts.first(where: { $0.accountID == result.accountID }) {
+                    AccountRunwaySummary(account: accountForecast, allowsEstimate: false)
+                }
             }
         }
         .padding(.vertical, SeldonSpacing.sm)

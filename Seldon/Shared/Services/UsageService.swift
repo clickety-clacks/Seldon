@@ -2,11 +2,19 @@ import Foundation
 
 protocol UsageServicing: Sendable {
     func fetchUsage(from baseURL: URL) async throws -> UsageSnapshot
+    func fetchForecast(from baseURL: URL) async throws -> UsageForecastSnapshot
+}
+
+extension UsageServicing {
+    func fetchForecast(from _: URL) async throws -> UsageForecastSnapshot {
+        throw UsageServiceError.forecastUnavailable
+    }
 }
 
 enum UsageServiceError: Error, Equatable {
     case invalidResponse
     case requestFailed
+    case forecastUnavailable
 }
 
 struct URLSessionUsageService: UsageServicing {
@@ -17,7 +25,15 @@ struct URLSessionUsageService: UsageServicing {
     }
 
     func fetchUsage(from baseURL: URL) async throws -> UsageSnapshot {
-        let endpoint = baseURL.appending(path: "api/v1/usage")
+        try await fetch(from: baseURL, path: "api/v1/usage", decode: UsageSnapshot.self)
+    }
+
+    func fetchForecast(from baseURL: URL) async throws -> UsageForecastSnapshot {
+        try await fetch(from: baseURL, path: "api/v1/usage/forecast", decode: UsageForecastSnapshot.self)
+    }
+
+    private func fetch<T: Decodable>(from baseURL: URL, path: String, decode type: T.Type) async throws -> T {
+        let endpoint = baseURL.appending(path: path)
         var request = URLRequest(url: endpoint)
         request.httpMethod = "GET"
         request.setValue("application/json", forHTTPHeaderField: "Accept")
@@ -28,7 +44,7 @@ struct URLSessionUsageService: UsageServicing {
                   (200..<300).contains(httpResponse.statusCode) else {
                 throw UsageServiceError.invalidResponse
             }
-            return try JSONDecoder().decode(UsageSnapshot.self, from: data)
+            return try JSONDecoder().decode(T.self, from: data)
         } catch let error as UsageServiceError {
             throw error
         } catch is CancellationError {
