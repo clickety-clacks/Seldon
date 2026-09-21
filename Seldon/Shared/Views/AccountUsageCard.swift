@@ -3,7 +3,7 @@ import SwiftUI
 struct AccountUsageCard: View {
     let result: UsageResult
     let spacious: Bool
-    let forecast: UsageForecastAccount? = nil
+    let forecast: UsageForecastAccount?
 
     private var sample: UsageSample? { result.sample }
 

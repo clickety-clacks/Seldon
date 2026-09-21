@@ -2,7 +2,7 @@ import SwiftUI
 
 struct UsageComparison: View {
     let results: [UsageResult]
-    let forecast: UsageForecastSnapshot? = nil
+    let forecast: UsageForecastSnapshot?
 
     var body: some View {
         VStack(alignment: .leading, spacing: SeldonSpacing.lg) {
