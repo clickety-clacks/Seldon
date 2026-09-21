@@ -1,6 +1,6 @@
 # Seldon
 
-Implementation-ready UI specification · 20 September 2026
+UI specification · revised 21 September 2026
 
 This file is the design source of truth for the shared SwiftUI iOS and visionOS app. Its repository location is explicitly requested for this project.
 
@@ -47,17 +47,17 @@ GET /api/v1/usage
 | `sample.plan` | Secondary metadata | Show beside the provider when present. |
 | `result.status` | Source badge | `live` → “Live”; `cache` → “Cached”; `stale` → “Stale”; `error` → “Error”. Status is supplied by the service, never inferred from elapsed time. |
 | `window.name` | Window title | Preserve the returned name. Do not assume every account has “5 hour” and “Weekly” windows. |
-| `window.used_percent` | Utilization meter and number | Format as a percentage with at most one fractional digit, e.g. “42.6%”. Append the visible word “used” in compact cards; the expanded chart has a shared “Used” column heading. |
+| `window.used_percent` | Utilization meter and number | Format as a percentage with at most one fractional digit, e.g. “42.6%”. Append the visible word “used” in compact cards; the comparison has a shared “Current usage” column heading. |
 | `window.resets_at` | Local reset date/time | Show “Resets 3:45 PM” for today and “Resets Sep 24, 3:45 PM” otherwise. Use the device's locale/time format. The accessibility value includes the full date, time, and time zone. |
 | `window.window_seconds` | Window duration | Secondary detail only if the returned window name does not already explain duration; use a localized duration such as “5 hours”. |
 | `sample.observed_at` | Sample timestamp | “Observed 3:42 PM”; include the date when necessary. Never label it “refreshed” or “live now”. |
 | `sample.age_seconds` | Sample age | “Sample age 2 min” describes the server's reported age when the snapshot was fetched. Do not run an age timer or use it to reclassify freshness. |
-| `generated_at` | Dashboard snapshot timestamp | “Snapshot Sep 20, 3:42 PM”; distinguish this from each sample's observation time. |
+| `generated_at` | Dashboard snapshot timestamp | “Updated 3:42 PM”, including the date when needed; distinguish this snapshot time from each sample's observation time in the disclosure. |
 | `counts` | Snapshot summary | Nonzero entries in the order Live, Cached, Stale, Error; include zero values only when all counts are zero. These are source counts, not a synthesized availability score. |
 
 Use `account_id` and window `id` internally for stable identity only. Never display account IDs, email addresses, credentials, the `raw` object, or arbitrary backend error/diagnostic text. The initial UI may show “Service reported an issue” for a diagnostic-bearing sample; adding human-readable diagnostic detail requires confirming that the actual messages are suitable for display. Do not serialize raw payloads into UI debug overlays or fixtures.
 
-Do not sum or average utilization across windows or accounts: the denominators differ. Preserve the service's account and window order in the main dashboard. “Next resets” is the one explicitly time-sorted projection.
+Do not sum or average utilization across windows or accounts: the denominators differ. Preserve the service's account and window order in the main dashboard. Reset times stay with their account windows; there is no separate reset agenda.
 
 ### Forecast contract
 
@@ -80,13 +80,14 @@ Use the system font throughout. Main numbers use the monospaced system design an
 | Role | SwiftUI base style | Treatment |
 | --- | --- | --- |
 | App wordmark | `.title2` | Medium weight, “SELDON”, 2 pt tracking; decorative letterspacing is limited to this short word. |
-| Screen title | `.largeTitle` | Bold, “Usage”; appears in the spacious layout, not repeated beneath a navigation title on iPhone. |
-| Overview number | `.title` | Monospaced digits, regular weight; number of accounts, not a global utilization figure. |
-| Account title | `.headline` | Primary foreground; at most two lines at normal text sizes, unlimited lines at accessibility sizes. |
-| Window percentage | `.title3` | Monospaced digits, medium weight. Expanded rows retain this size instead of growing indefinitely with the window. |
-| Window label / controls | `.body` | Default system styling. |
-| Provider / plan / reset | `.subheadline` | Secondary foreground; reset text has full contrast when it is the row's primary detail. |
-| Timestamp / section hint | `.footnote` | Secondary foreground, never `.caption2`; wraps normally. |
+| Snapshot summary | `.subheadline` / `.caption` | Account count, source summary, and update time on one compact line when space permits. |
+| Account title | `.headline` | Primary foreground; wraps at large text sizes. |
+| Window percentage | `.subheadline` compact / `.body` comparison | Monospaced digits, semibold. Percentages remain visible alongside the meter. |
+| Account runway | `.subheadline` | Semibold, with a smaller visible qualification when needed. |
+| Pool estimate | `.headline` | Monospaced digits inside a compact disclosure row. |
+| Window label | `.subheadline` | Secondary foreground. |
+| Provider / plan / status / reset | `.caption` compact | Secondary foreground; comparison reset text uses `.subheadline`. |
+| Expanded details | `.footnote` | Observation time, history coverage, and forecast explanations. |
 
 These are Dynamic Type styles, not fixed pixel fonts. The only tracking is the wordmark. Do not shrink numbers or labels with `minimumScaleFactor` to force a dense layout.
 
@@ -110,67 +111,50 @@ There are no bloom effects behind text, gradients across type, neon outlines aro
 
 ### Spacing and geometry
 
-Use a shared spacing scale: 4, 8, 12, 16, 24, 32 pt. Account group radius is 20 pt; inset meter tracks are capsules. Compact outer content padding is 16 pt. Spacious outer padding is 24 pt. Group interior padding is 16 pt compact / 20 pt spacious. Gap between groups is 16 pt. All dimensions describe base text size; content height grows with text.
+Use a shared spacing scale: 4, 8, 12, 16, 24, 32 pt. Account group radius is 14 pt; pool radius is 12 pt. Compact outer padding is 16 pt, spacious outer padding is 24 pt, and group interior padding is 12 pt. Account groups have an 8 pt gap. Major sections have a 16 pt gap. All dimensions describe base text size; content height grows with text.
 
 ## Dashboard hierarchy and components
 
-1. **DashboardToolbar**: wordmark at leading; Refresh and Connection at trailing. Use system symbols `arrow.clockwise` and `network`, with actual text labels for accessibility. At spacious widths show visible “Refresh” and “Connection” labels. At compact widths icons suffice visually. Refresh is one action, not a menu. Connection opens the connection sheet.
-2. **SnapshotHeader**: “Usage”, account count, source count summary, snapshot timestamp. On iPhone the navigation title is “Seldon” and the content header uses the account count and snapshot summary without a duplicate large app title. The account count is the number of returned account results, including errored results.
-3. **AccountUsageCard / UsageComparison**: account title and provider/plan, source badge, every reported window, observation metadata, and a compact server runway summary when a forecast is available. Compact and expanded views are presentations of the same data and identifiers.
-4. **UsageRunway**: a forecast header and separate combined-runway cards for comparable pools. Each card keeps provider, plan, window, member labels, server status, and the pooling assumption visible. It never merges incompatible pools.
-5. **ResetAgenda**: expanded-only secondary projection listing reported reset times, account labels, and window names. Main usage rows always retain their own reset text, so shrinking never hides required information.
+The first screen supports comparing accounts. Current percentages and reset times remain visible; runway adds a separate estimate. Snapshot metadata and forecast explanations take less room than the accounts.
 
-Use real `Button`, `Label`, `ProgressView`, and native sheet/form elements where appropriate. The account cards and chart bars themselves are read-only and must not look like buttons.
+1. `DashboardToolbar` provides Refresh and Connection. iPhone uses its native navigation title and toolbar; visionOS uses its window toolbar.
+2. `SnapshotHeader` shows account count, source summary, and snapshot time in a compact line. Large text stacks these values.
+3. `UsageRunway` shows compact summaries for compatible pools with the visible assumption "If switching accounts". Each summary has provider, plan, window, member count, and estimate or unavailable state. Qualification remains visible. Selecting the row reveals membership, coverage, and the pooling explanation without repeating per-member runway.
+4. `AccountUsageCard` or `UsageComparison` presents every account, usage window, percentage, meter, reset, source status, and account runway. Selecting an account reveals observation metadata, window duration when needed, coverage, and forecast explanations.
 
-### AccountUsageCard
+Use native buttons for disclosures. Account usage is read-only; selecting a row only expands its details. Expansion never requests data or changes an account.
 
-Header: account title on leading; source badge on trailing. Below: provider and plan separated by a middle dot. At narrow sizes or large text, the badge moves below the account title rather than truncating it.
+### Account cards
 
-Each usage window has:
+The heading has the account name and provider/plan/status on the left, and runway plus any qualification on the right. The whole summary opens details, with a small chevron marking that action. There is no separate details footer.
 
-```text
-Five-hour window                         42.6% used
-━━━━━━━━━━━━━━━━━━────────────────────────────────
-Resets 3:45 PM
-```
+Each window retains its name, percentage used, a linear meter, and reset time. Multiple windows stay visible. A single-window account does not repeat its window name beneath the runway. The meter describes used capacity from 0 to 100%; the number remains authoritative.
 
-The meter is 8 pt high in compact mode, with a neutral unfilled track. It describes used capacity from 0–100%; the numeric label is authoritative. Use a continuous fill, not a ring, so multiple windows can be compared without decoding arc angles. Window rows have 16 pt separation. The account footer has source observation time and reported age on one wrapping line, separated from the meters by 12 pt.
+Source status uses both a symbol and a word. Live and Cached stay neutral; Stale and Error use the attention color. A reported service issue remains visible while the row is collapsed. Observation time, sample age, history coverage, and the full forecast qualification appear in the disclosure.
 
-Use source status with a symbol and text: Live (`checkmark.circle`), Cached (`archivebox`), Stale (`clock`), Error (`exclamationmark.circle`). Live and Cached use a neutral foreground; Stale and Error add the attention-colored symbol. No animated “live” dot. A card with a reported diagnostic has the short secondary line “Service reported an issue”.
+### Wide comparison
 
-### UsageComparison
+At expanded width, accounts become aligned rows in one grouped panel:
 
-At expanded width account cards become a single aligned instrument panel. Each account is a section: its header retains title/provider/plan/status and observation metadata; each window is one chart row beneath it.
+| Account | Current usage | Estimated runway | Reset |
+| --- | --- | --- | --- |
+| Name, provider, plan, source | Each window, percentage and meter | Estimate or explicit unavailable state; qualification | Each window's reset time |
 
-```text
-ACCOUNT / WINDOW                 USED          UTILIZATION             RESET
-Claude personal · Pro · Live
-  Five-hour window              42.6%     ━━━━━━━────────────        3:45 PM
-  Weekly                        18.2%     ━━━────────────────       Sep 24
-Observed 3:42 PM · Sample age 2 min
-```
+The account column is 190 pt, runway is 200 pt, and reset is 156 pt. Usage takes the remaining width. Each row has a disclosure button with a 44 pt target on iOS or 60 pt on visionOS. Account errors occupy regular rows. There is no second reset agenda or decorative utilization axis.
 
-The account/window column has a minimum of 160 pt, the numeric column 80 pt, the plot at least 160 pt and takes remaining width, and the reset column 136 pt. Use a 12 pt meter and shared 0%, 50%, 100% axis labels above the first plotted row. Light tick marks at those positions are sufficient. Preserve visible window names and exact percentages; never make the chart itself the only way to read a value.
+### Responsive layout
 
-This is a current-snapshot comparison chart, not a time series. Do not draw sparklines or imply historical points. Source errors occupy regular account sections and do not cause other accounts to disappear.
+Use actual container width and Dynamic Type, never a device model or global screen dimensions.
 
-### ResetAgenda
+| Available width | Composition |
+| --- | --- |
+| Under 680 pt | Single column of compact account cards. |
+| 680 to 1,039 pt | Two account columns, each at least 300 pt. |
+| 1,040 pt and wider | Aligned account, current usage, estimated runway, and reset columns. |
 
-Title “Reported resets”. Show returned reset timestamps in ascending order, each with account label and window name. This is an agenda, not a predicted scheduler. Include the local date/time; for a reported timestamp already in the past, say “Reported Sep 20, 1:00 PM” rather than claiming a reset happened or rolling it forward. A small footer says “Times reported by usage server”. No live countdown, progress-to-reset estimate, or promise that capacity will become available.
+Pool summaries use the available horizontal space without stretching type. Overall content is centered and capped at 1,560 pt. At accessibility sizes the dashboard uses one column, stacking summary and account text explicitly. No text-size cap or minimum-scale reduction is permitted.
 
-## Responsive layout and morphing
-
-Measure the actual content container, not the device model or `UIScreen.main`. All thresholds are points at normal Dynamic Type. Accessibility text sizes override the density rules.
-
-| Available width | Composition | Visualization |
-| --- | --- | --- |
-| Under 680 pt | One vertical stream; compact header; single account column. | 8 pt per-window meters inside account cards. |
-| 680–1,039 pt | Spacious header; two equal account columns, each at least 300 pt; shared vertical scrolling. | Same cards with additional breathing room and 10 pt tracks. |
-| 1,040 pt and wider | Spacious header; combined runway and main comparison region plus a 280 pt reset agenda, separated by 24 pt. | Aligned 12 pt usage bars and shared axis; runway and reset agenda use newly available space. |
-
-At 1,040 pt the comparison region can be tight: if its text and minimum plot columns cannot fit, the reset agenda moves below the comparison rather than squeezing labels. At 1,200 pt and above the agenda is beside the comparison. Overall content is centered with a maximum readable width of 1,560 pt. Beyond that, margins grow; type and bars do not become billboard-sized. The design does not add a third or fourth account-card column.
-
-The change from card deck to comparison panel is an intentional structural change. Preserve selected connection state and dashboard data across it. Do not refetch when the width crosses a breakpoint. Do not reorder accounts during resize or refresh. A brief opacity transition is sufficient; never stretch card text into chart text.
+Resizing does not reorder accounts, change the data, initiate a fetch, or discard an open connection draft.
 
 ### Minimum and short-window behavior
 
@@ -239,7 +223,7 @@ Switching to a different saved server clears the previous server's displayed sna
 
 ## Accessibility
 
-- All meaningful values have text equivalents. Source status uses symbol plus word; meter fill color is never the sole signal. Provide a VoiceOver summary per window: “[account label], [window name], 42.6 percent used, resets [full local date and time].” Read source status and sample observation metadata after that account's windows.
+- All meaningful values have text equivalents. Source status uses symbol plus word; meter fill color is never the sole signal. Provide a VoiceOver summary per window: “[account label], [window name], 42.6 percent used, resets [full local date and time].” Read source status with the account identity and observation metadata when the details are expanded.
 - Hide decorative track, tick, and separator elements from the accessibility tree. A meter and its adjacent visible labels must not produce duplicate readings. Account IDs and raw fields must never enter accessibility labels.
 - At accessibility Dynamic Type sizes, use one column regardless of window width. Replace the comparison panel with the card presentation, move metadata onto separate lines, allow wrapping, and maintain vertical scrolling. No ellipsis may hide a percentage, reset time, or status.
 - Use semantic foreground styles on material. Verify ordinary text contrast at least 4.5:1 and large text at least 3:1 in the actual rendered iOS light/dark and visionOS environments. Adjust the design token shade if necessary rather than adding glow.
@@ -254,10 +238,10 @@ With Reduce Motion enabled, update bar lengths and numeric text without interpol
 
 ## SwiftUI implementation constraints
 
-- Keep one observable dashboard state owner in a stable parent using `@Observable` and native Swift concurrency. The network service and decoded usage/forecast snapshots are shared by all layouts; card/comparison/runway/agenda views are projections, not separate fetching controllers.
+- Keep one observable dashboard state owner in a stable parent using `@Observable` and native Swift concurrency. The network service and decoded usage/forecast snapshots are shared by all layouts; card/comparison/runway views are projections, not separate fetching controllers.
 - Put connection draft state and focus state in the sheet's stable root. Avoid `.id(width)` or `.id(snapshotTimestamp)` on state-owning views. Breakpoint changes must not recreate the connection state or initiate requests.
 - Use actual container width and Dynamic Type to choose composition. `ViewThatFits`, adaptive layout, or a focused `Layout` implementation are appropriate; do not use global screen dimensions or inspect the hardware model.
-- Keep visual constants in one shared design-token definition. Split concrete components into appropriately named files: `DashboardView`, `DashboardToolbar`, `SnapshotHeader`, `AccountUsageCard`, `UsageWindowRow`, `UsageComparison`, `ResetAgenda`, `SourceStatusBadge`, and `ConnectionView`. These are component boundaries, not a requirement for extra abstraction layers.
+- Keep visual constants in one shared design-token definition. Split concrete components into appropriately named files: `DashboardView`, `DashboardToolbar`, `SnapshotHeader`, `AccountUsageCard`, `UsageWindowRow`, `UsageComparison`, `SourceStatusBadge`, and `ConnectionView`. These are component boundaries, not a requirement for extra abstraction layers.
 - Prefer native SwiftUI shapes for the meters. Swift Charts is acceptable if it produces the specified accessible horizontal comparison without extra decoration; no third-party chart or font package is needed.
 - Use `@Environment` accessibility settings to select motion/layout behavior. Do not fork a separate inaccessible “futuristic” view hierarchy.
 - Keep iOS-specific glass and toolbar configuration behind platform boundaries. Use native visionOS material behavior. No UIKit window-size lookup is necessary.
@@ -266,7 +250,7 @@ With Reduce Motion enabled, update bar lengths and numeric text without interpol
 ## Acceptance checks
 
 1. At 420 × 420 pt on visionOS, Refresh and Connection remain usable; all account windows are reachable by vertical scrolling; there is no horizontal overflow.
-2. At approximately 760 pt width, accounts form two readable columns. At 1,160 × 760 pt the chart comparison replaces the cards, with the reset agenda below if necessary. At 1,280 pt width the agenda sits alongside the comparison. At 1,800 pt, readable content remains centered and capped.
+2. At approximately 760 pt width, accounts form two readable columns. At 1,160 × 760 pt aligned account, usage, runway, and reset columns replace the cards. Five mixed-state accounts should be comparable in the first viewport. At 1,800 pt, readable content remains centered and capped.
 3. Resize repeatedly across each breakpoint: the same account data and source statuses remain, no duplicate fetch occurs, and an open connection draft is preserved.
 4. An iPhone portrait layout displays the same windows, percentages, reset times, and freshness as the expanded spatial layout. It does not replace the detail with an aggregate score.
 5. A 99% value is readable in the same accent as a 1% value; no unsupported quota warning appears. Source Stale/Error labels remain distinguishable without color.

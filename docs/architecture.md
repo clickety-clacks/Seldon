@@ -23,7 +23,7 @@ scene configuration and platform-specific navigation/toolbars are conditional.
 - `Design` is the single home for spacing, color, typography, and geometry
   tokens shared by both platforms.
 - `Views` are feature-oriented projections of the shared state. Card, aligned
-  comparison, and reset agenda presentations do not fetch or own dashboard
+  comparison, and compatible pool presentations do not fetch or own dashboard
   data. Geometry and Dynamic Type choose the composition from the actual
   content container width.
 - `App` contains only platform entry points. iOS uses a native
@@ -57,11 +57,12 @@ reference time, so the UI does not create a countdown ticker.
 ## Responsive composition
 
 The dashboard measures its content container. It uses one stream below 680 pt,
-two card columns from 680 through 1,039 pt, and the comparison plus reset
-agenda at 1,040 pt and above. At accessibility Dynamic Type sizes it always
-uses the card stream. The readable content width is capped at 1,560 pt and
-the reset agenda moves below the comparison until the comparison and agenda
-can fit side by side.
+two card columns from 680 through 1,039 pt, and aligned account, usage, runway,
+and reset columns at 1,040 pt and above. At accessibility Dynamic Type sizes it
+uses one card stream with stacked text. The readable content width is capped
+at 1,560 pt. Account and pool disclosures own only their expansion state;
+observation metadata and forecast explanations appear when expanded. Current
+usage percentages, reset times, source status, and qualifications stay visible.
 
 ## Testing
 

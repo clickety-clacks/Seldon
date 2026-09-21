@@ -52,7 +52,7 @@ struct DashboardView: View {
         GeometryReader { proxy in
             let composition = DashboardComposition.forWidth(proxy.size.width, accessibilitySize: dynamicTypeSize.isAccessibilitySize)
             ScrollView {
-                VStack(alignment: .leading, spacing: SeldonSpacing.lg) {
+                VStack(alignment: .leading, spacing: SeldonSpacing.md) {
                     if model.hasConnection {
                         if model.isLoading && model.snapshot == nil {
                             loadingState
@@ -101,40 +101,25 @@ struct DashboardView: View {
                 UsageRunwayUnavailable(isLoading: model.isForecastLoading)
             }
 
+            Text("Accounts")
+                .font(.subheadline.weight(.semibold))
+
             switch composition {
             case .compact:
                 cards(snapshot.results, spacious: false, forecast: model.forecast)
             case .spaciousCards:
                 cards(snapshot.results, spacious: true, forecast: model.forecast)
             case .comparison:
-                comparison(snapshot.results, width: width, forecast: model.forecast)
+                UsageComparison(results: snapshot.results, forecast: model.forecast)
             }
         }
     }
 
     private func cards(_ results: [UsageResult], spacious: Bool, forecast: UsageForecastSnapshot?) -> some View {
         let columns = spacious ? [GridItem(.flexible(minimum: 300)), GridItem(.flexible(minimum: 300))] : [GridItem(.flexible())]
-        return LazyVGrid(columns: columns, spacing: SeldonSpacing.md) {
+        return LazyVGrid(columns: columns, spacing: SeldonSpacing.xs) {
             ForEach(results) { result in
                 AccountUsageCard(result: result, spacious: spacious, forecast: forecast?.accounts.first(where: { $0.accountID == result.accountID }))
-            }
-        }
-    }
-
-    private func comparison(_ results: [UsageResult], width: CGFloat, forecast: UsageForecastSnapshot?) -> some View {
-        let sideBySide = width >= 1_200
-        return Group {
-            if sideBySide {
-                HStack(alignment: .top, spacing: SeldonSpacing.lg) {
-                    UsageComparison(results: results, forecast: forecast)
-                    ResetAgenda(results: results)
-                        .frame(width: 280)
-                }
-            } else {
-                VStack(alignment: .leading, spacing: SeldonSpacing.lg) {
-                    UsageComparison(results: results, forecast: forecast)
-                    ResetAgenda(results: results)
-                }
             }
         }
     }
