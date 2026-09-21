@@ -15,7 +15,7 @@ struct SourceStatusBadge: View {
     var body: some View {
         Label(status.displayName, systemImage: symbol)
             .foregroundStyle((status == .stale || status == .error) ? SeldonColors.attention : .secondary)
-            .font(.subheadline)
+            .font(.caption)
             .accessibilityLabel("Source status, \(status.displayName)")
     }
 }

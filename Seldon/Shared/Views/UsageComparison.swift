@@ -5,116 +5,116 @@ struct UsageComparison: View {
     let forecast: UsageForecastSnapshot?
 
     var body: some View {
-        VStack(alignment: .leading, spacing: SeldonSpacing.lg) {
-            comparisonHeader
-            ForEach(results) { result in
-                comparisonSection(result)
+        VStack(alignment: .leading, spacing: 0) {
+            HStack(spacing: SeldonSpacing.md) {
+                Text("Account").frame(width: 190, alignment: .leading)
+                Text("Current usage").frame(maxWidth: .infinity, alignment: .leading)
+                Text("Estimated runway").frame(width: 200, alignment: .trailing)
+                Text("Reset").frame(width: 156, alignment: .leading)
+                Color.clear.frame(width: SeldonControls.minimumTarget, height: 1)
             }
-        }
-        .frame(maxWidth: .infinity, alignment: .leading)
-    }
+            .font(.caption.weight(.medium))
+            .foregroundStyle(.secondary)
+            .padding(.horizontal, SeldonSpacing.sm)
+            .padding(.bottom, SeldonSpacing.xs)
+            .accessibilityHidden(true)
 
-    private var comparisonHeader: some View {
-        HStack(alignment: .bottom, spacing: SeldonSpacing.sm) {
-            Text("ACCOUNT / WINDOW")
-                .frame(minWidth: 160, alignment: .leading)
-            Text("USED")
-                .frame(width: 80, alignment: .trailing)
-            VStack(alignment: .leading, spacing: 2) {
-                Text("UTILIZATION")
-                HStack {
-                    Text("0%")
-                    Spacer()
-                    Text("50%")
-                    Spacer()
-                    Text("100%")
+            VStack(spacing: 0) {
+                ForEach(results) { result in
+                    ComparisonAccountRow(result: result, forecast: forecast?.accounts.first(where: { $0.accountID == result.accountID }))
+                    if result.id != results.last?.id {
+                        Divider().padding(.horizontal, SeldonSpacing.sm)
+                    }
                 }
-                .font(.caption)
-                .foregroundStyle(.secondary)
             }
-            .frame(minWidth: 160, maxWidth: .infinity, alignment: .leading)
-            Text("RESET")
-                .frame(width: 136, alignment: .leading)
+            .seldonGroupBackground(cornerRadius: 14)
         }
-        .font(.caption.weight(.medium))
-        .foregroundStyle(.secondary)
-        .accessibilityHidden(true)
     }
+}
 
-    @ViewBuilder
-    private func comparisonSection(_ result: UsageResult) -> some View {
-        VStack(alignment: .leading, spacing: SeldonSpacing.sm) {
-            HStack(alignment: .firstTextBaseline) {
-                VStack(alignment: .leading, spacing: SeldonSpacing.xxs) {
-                    Text(result.sample?.label ?? "Account unavailable")
-                        .font(.headline)
-                        .lineLimit(nil)
+private struct ComparisonAccountRow: View {
+    @State private var isExpanded = false
+    let result: UsageResult
+    let forecast: UsageForecastAccount?
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: SeldonSpacing.xs) {
+            HStack(alignment: .center, spacing: SeldonSpacing.md) {
+                VStack(alignment: .leading, spacing: 4) {
+                    AccountIdentity(result: result)
+                    SourceStatusBadge(status: result.status)
+                    if result.sample?.hasDiagnostics == true {
+                        Text("Service issue").font(.caption).foregroundStyle(SeldonColors.attention)
+                    }
+                }
+                .frame(width: 190, alignment: .leading)
+
+                VStack(alignment: .leading, spacing: SeldonSpacing.xs) {
                     if let sample = result.sample {
-                        HStack(spacing: SeldonSpacing.xs) {
-                            Text(sample.provider)
-                            if let plan = sample.plan, !plan.isEmpty {
-                                Text("·")
-                                Text(plan)
+                        ForEach(sample.windows) { window in
+                            VStack(alignment: .leading, spacing: 4) {
+                                HStack(alignment: .firstTextBaseline) {
+                                    Text(window.name).font(.subheadline).foregroundStyle(.secondary)
+                                    Spacer(minLength: 0)
+                                    Text(UsageFormatters.percent(window.usedPercent))
+                                        .font(.body.monospacedDigit().weight(.semibold))
+                                }
+                                ProgressView(value: window.usedPercent, total: 100)
+                                    .tint(SeldonColors.accent)
+                                    .accessibilityHidden(true)
                             }
+                            .accessibilityElement(children: .combine)
+                            .accessibilityLabel("\(window.name), \(UsageFormatters.percent(window.usedPercent)) used")
                         }
-                        .font(.subheadline)
-                        .foregroundStyle(.secondary)
+                    } else {
+                        Text("Usage unavailable").font(.subheadline).foregroundStyle(.secondary)
                     }
                 }
-                Spacer(minLength: SeldonSpacing.sm)
-                SourceStatusBadge(status: result.status)
-            }
+                .frame(maxWidth: .infinity, alignment: .leading)
 
-            if let sample = result.sample {
-                if let accountForecast = forecast?.accounts.first(where: { $0.accountID == result.accountID }), result.status != .error {
-                    AccountRunwaySummary(account: accountForecast)
-                }
-                ForEach(sample.windows) { window in
-                    HStack(alignment: .firstTextBaseline, spacing: SeldonSpacing.sm) {
-                        Text(window.name)
-                            .frame(minWidth: 160, alignment: .leading)
-                        Text(UsageFormatters.percent(window.usedPercent))
-                            .font(.title3.monospacedDigit().weight(.medium))
-                            .frame(width: 80, alignment: .trailing)
-                        ProgressView(value: window.usedPercent, total: 100)
-                            .progressViewStyle(.linear)
-                            .tint(SeldonColors.accent)
-                            .frame(minWidth: 160, maxWidth: .infinity)
-                            .accessibilityHidden(true)
-                        VStack(alignment: .leading, spacing: SeldonSpacing.xxs) {
-                            Text(UsageFormatters.localDateTime(for: window.resetsAt))
-                            if UsageFormatters.shouldShowDuration(for: window.name) {
-                                Text(UsageFormatters.duration(window.windowSeconds))
-                                    .font(.footnote)
-                                    .foregroundStyle(.secondary)
-                            }
-                        }
-                        .frame(width: 136, alignment: .leading)
-                        .accessibilityLabel("Resets \(UsageFormatters.fullLocalDateTime(window.resetsAt))")
+                Group {
+                    if let forecast {
+                        AccountRunwaySummary(account: forecast, allowsEstimate: result.sample != nil && result.status != .error)
+                    } else {
+                        Text("No runway estimate").font(.subheadline).foregroundStyle(.secondary)
                     }
-                    .accessibilityElement(children: .combine)
-                    .accessibilityLabel("\(sample.label), \(window.name), \(UsageFormatters.percent(window.usedPercent)) used, resets \(UsageFormatters.fullLocalDateTime(window.resetsAt))")
                 }
-                Text("\(UsageFormatters.observedText(for: sample.observedAt)) · \(UsageFormatters.sampleAge(sample.ageSeconds))")
-                    .font(.footnote)
-                    .foregroundStyle(.secondary)
-                if sample.hasDiagnostics {
-                    Text("Service reported an issue")
-                        .font(.footnote)
+                .frame(width: 200, alignment: .trailing)
+
+                VStack(alignment: .leading, spacing: SeldonSpacing.xs) {
+                    if let sample = result.sample {
+                        ForEach(sample.windows) { window in
+                            VStack(alignment: .leading, spacing: 4) {
+                                if sample.windows.count > 1 {
+                                    Text(window.name).font(.caption).foregroundStyle(.secondary)
+                                }
+                                Text(UsageFormatters.localDateTime(for: window.resetsAt))
+                                    .font(.subheadline)
+                            }
+                            .accessibilityLabel("\(window.name) resets \(UsageFormatters.fullLocalDateTime(window.resetsAt))")
+                        }
+                    }
+                }
+                .frame(width: 156, alignment: .leading)
+
+                Button {
+                    isExpanded.toggle()
+                } label: {
+                    Image(systemName: isExpanded ? "chevron.up" : "chevron.down")
+                        .font(.subheadline.weight(.semibold))
                         .foregroundStyle(.secondary)
+                        .frame(width: SeldonControls.minimumTarget, height: SeldonControls.minimumTarget)
+                        .contentShape(Rectangle())
                 }
-            } else {
-                Text("Account unavailable")
-                    .font(.body)
-                    .foregroundStyle(.secondary)
-                if let accountForecast = forecast?.accounts.first(where: { $0.accountID == result.accountID }) {
-                    AccountRunwaySummary(account: accountForecast, allowsEstimate: false)
-                }
+                .buttonStyle(.plain)
+                .accessibilityLabel("Details for \(result.sample?.label ?? "unavailable account")")
+                .accessibilityValue(isExpanded ? "Expanded" : "Collapsed")
+            }
+            if isExpanded {
+                AccountUsageDetails(result: result, forecast: forecast)
             }
         }
-        .padding(.vertical, SeldonSpacing.sm)
-        .overlay(alignment: .bottom) {
-            Divider().foregroundStyle(SeldonColors.separator).accessibilityHidden(true)
-        }
+        .padding(SeldonSpacing.sm)
+        .accessibilityElement(children: .contain)
     }
 }

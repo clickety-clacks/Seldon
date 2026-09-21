@@ -25,8 +25,10 @@ Seldon is a visual client for [Lachesis](https://github.com/clickety-clacks/lach
 - Source-reported status: Live, Cached, Stale, or Error
 - Observation time, sample age, and snapshot summary
 - Per-account runway from the server's observed history, with explicit collecting, exhausted, no-burn, reset-before-depletion, stale, unavailable, and authentication states
-- Separate combined runway cards only for compatible provider, plan, window, and duration pools
+- Compact combined runway summaries for compatible provider, plan, window, and duration pools
 - A compact card layout that expands into an aligned comparison panel when the window is wide enough
+
+Percentages, usage bars, reset times, and source status stay visible beside each account's runway. Select an account for observation time, history coverage, and forecast explanations. Pool disclosures show members and the switching assumption without repeating each account's estimate.
 
 Seldon presents the values supplied by the configured server. It does not calculate burn, create token estimates, combine incompatible quotas, collect history, or expose raw provider payloads. A combined runway assumes work can move between accounts in the same compatible pool.
 
@@ -58,7 +60,7 @@ Seldon measures the available content width instead of choosing layouts by devic
 | --- | --- |
 | Under 680 pt | Single column of compact account cards |
 | 680–1,039 pt | Two account-card columns |
-| 1,040 pt and wider | Usage comparison panel with reset agenda |
+| 1,040 pt and wider | Aligned account, usage, runway, and reset columns |
 
 The visionOS window requests an initial 1,160 × 760 pt size and maintains a 420 × 420 pt content minimum. At accessibility text sizes, the interface uses one readable scrolling column.
 
