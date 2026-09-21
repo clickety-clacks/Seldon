@@ -11,13 +11,13 @@ struct AccountUsageCard: View {
         VStack(alignment: .leading, spacing: SeldonSpacing.md) {
             header
             if let sample {
+                if let forecast, result.status != .error {
+                    AccountRunwaySummary(account: forecast)
+                }
                 VStack(alignment: .leading, spacing: SeldonSpacing.md) {
                     ForEach(sample.windows) { window in
                         UsageWindowRow(accountLabel: displayLabel(for: sample), window: window, spacious: spacious)
                     }
-                }
-                if let forecast, result.status != .error {
-                    AccountRunwaySummary(account: forecast)
                 }
                 footer(sample)
             } else {
