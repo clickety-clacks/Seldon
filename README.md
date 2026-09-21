@@ -16,7 +16,7 @@ The project uses shared SwiftUI models, services, state, design tokens, and view
 
 ## Lachesis integration
 
-Seldon is a visual client for [Lachesis](https://github.com/clickety-clacks/lachesis), the usage service that provides its normalized account and quota snapshots. Configure Seldon with the reachable base URL for your Lachesis instance; it requests the usage snapshot from that address.
+Seldon is a visual client for [Lachesis](https://github.com/clickety-clacks/lachesis), the usage service that provides its normalized account, quota, and forecast snapshots. Configure Seldon with the reachable base URL for your Lachesis instance; it requests those snapshots from that address.
 
 ## What it shows
 
