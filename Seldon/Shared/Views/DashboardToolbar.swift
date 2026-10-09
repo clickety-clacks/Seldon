@@ -1,7 +1,7 @@
 import SwiftUI
 
 struct DashboardToolbar: View {
-    let isRefreshing: Bool
+    let isBusy: Bool
     let onRefresh: () -> Void
     let onConnection: () -> Void
 
@@ -13,7 +13,7 @@ struct DashboardToolbar: View {
                 .accessibilityAddTraits(.isHeader)
             Spacer(minLength: SeldonSpacing.sm)
             Button(action: onRefresh) {
-                if isRefreshing {
+                if isBusy {
                     ProgressView()
                         .controlSize(.small)
                 } else {
@@ -23,8 +23,8 @@ struct DashboardToolbar: View {
             #if os(visionOS)
             .frame(minWidth: 60, minHeight: 60)
             #endif
-            .disabled(isRefreshing)
-            .accessibilityLabel(isRefreshing ? "Refreshing usage" : "Refresh")
+            .disabled(isBusy)
+            .accessibilityLabel(isBusy ? "Refreshing usage" : "Refresh")
             Button(action: onConnection) {
                 Label("Connection", systemImage: "network")
             }

@@ -9,6 +9,16 @@ enum SeldonSpacing {
     static let xl: CGFloat = 32
 }
 
+enum SeldonControls {
+    static var minimumTarget: CGFloat {
+        #if os(visionOS)
+        60
+        #else
+        44
+        #endif
+    }
+}
+
 enum SeldonColors {
     static let canvas: Color = {
         #if os(visionOS)
