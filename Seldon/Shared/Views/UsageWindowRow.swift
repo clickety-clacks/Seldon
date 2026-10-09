@@ -38,6 +38,6 @@ struct UsageWindowRow: View {
             }
         }
         .accessibilityElement(children: .ignore)
-        .accessibilityLabel("\(accountLabel), \(window.name), \(UsageFormatters.percent(window.usedPercent)) used, resets \(UsageFormatters.fullLocalDateTime(window.resetsAt))")
+        .accessibilityLabel("\(accountLabel), \(window.name), \(UsageFormatters.percent(window.usedPercent)) used, \(UsageFormatters.resetAccessibilityText(for: window.resetsAt))")
     }
 }

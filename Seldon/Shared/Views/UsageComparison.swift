@@ -78,7 +78,7 @@ struct UsageComparison: View {
                             .frame(minWidth: 160, maxWidth: .infinity)
                             .accessibilityHidden(true)
                         VStack(alignment: .leading, spacing: SeldonSpacing.xxs) {
-                            Text(UsageFormatters.localDateTime(for: window.resetsAt))
+                            Text(UsageFormatters.resetValueText(for: window.resetsAt))
                             if UsageFormatters.shouldShowDuration(for: window.name) {
                                 Text(UsageFormatters.duration(window.windowSeconds))
                                     .font(.footnote)
@@ -86,10 +86,10 @@ struct UsageComparison: View {
                             }
                         }
                         .frame(width: 136, alignment: .leading)
-                        .accessibilityLabel("Resets \(UsageFormatters.fullLocalDateTime(window.resetsAt))")
+                        .accessibilityLabel(UsageFormatters.resetAccessibilityText(for: window.resetsAt))
                     }
                     .accessibilityElement(children: .combine)
-                    .accessibilityLabel("\(sample.label), \(window.name), \(UsageFormatters.percent(window.usedPercent)) used, resets \(UsageFormatters.fullLocalDateTime(window.resetsAt))")
+                    .accessibilityLabel("\(sample.label), \(window.name), \(UsageFormatters.percent(window.usedPercent)) used, \(UsageFormatters.resetAccessibilityText(for: window.resetsAt))")
                 }
                 Text("\(UsageFormatters.observedText(for: sample.observedAt)) · \(UsageFormatters.sampleAge(sample.ageSeconds))")
                     .font(.footnote)

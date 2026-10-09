@@ -55,8 +55,19 @@ enum UsageFormatters {
         value.formatted(.number.precision(.fractionLength(0...1))) + "%"
     }
 
-    static func resetText(for date: Date, now: Date = .now) -> String {
-        "Resets \(localDateTime(for: date, relativeTo: now))"
+    static func resetText(for date: Date?, now: Date = .now) -> String {
+        guard let date else { return "Not reported" }
+        return "Resets \(localDateTime(for: date, relativeTo: now))"
+    }
+
+    static func resetValueText(for date: Date?, now: Date = .now) -> String {
+        guard let date else { return "Not reported" }
+        return localDateTime(for: date, relativeTo: now)
+    }
+
+    static func resetAccessibilityText(for date: Date?) -> String {
+        guard let date else { return "reset time not reported" }
+        return "resets \(fullLocalDateTime(date))"
     }
 
     static func agendaResetText(for date: Date, now: Date = .now) -> String {

@@ -35,7 +35,7 @@ struct UsageWindow: Identifiable, Equatable, Sendable {
     let id: String
     let name: String
     let usedPercent: Double
-    let resetsAt: Date
+    let resetsAt: Date?
     let windowSeconds: Double
 }
 
@@ -193,7 +193,7 @@ extension UsageWindow: Codable {
         id = try container.decode(String.self, forKey: .id)
         name = try container.decode(String.self, forKey: .name)
         usedPercent = try container.decode(Double.self, forKey: .usedPercent)
-        resetsAt = try TimestampCodec.date(from: container.decode(String.self, forKey: .resetsAt))
+        resetsAt = try container.decodeIfPresent(String.self, forKey: .resetsAt).map(TimestampCodec.date)
         windowSeconds = try container.decode(Double.self, forKey: .windowSeconds)
     }
 
@@ -202,7 +202,7 @@ extension UsageWindow: Codable {
         try container.encode(id, forKey: .id)
         try container.encode(name, forKey: .name)
         try container.encode(usedPercent, forKey: .usedPercent)
-        try container.encode(ISO8601DateFormatter().string(from: resetsAt), forKey: .resetsAt)
+        try container.encodeIfPresent(resetsAt.map { ISO8601DateFormatter().string(from: $0) }, forKey: .resetsAt)
         try container.encode(windowSeconds, forKey: .windowSeconds)
     }
 }

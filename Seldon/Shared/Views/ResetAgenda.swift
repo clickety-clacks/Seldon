@@ -11,10 +11,15 @@ struct ResetAgenda: View {
     let results: [UsageResult]
 
     private var entries: [Entry] {
+        Self.reportedEntries(from: results)
+    }
+
+    static func reportedEntries(from results: [UsageResult]) -> [Entry] {
         results.flatMap { result -> [Entry] in
             guard let sample = result.sample else { return [] }
-            return sample.windows.map { window in
-                Entry(id: "\(result.accountID)-\(window.id)", label: sample.label, windowName: window.name, date: window.resetsAt)
+            return sample.windows.compactMap { window in
+                guard let date = window.resetsAt else { return nil }
+                return Entry(id: "\(result.accountID)-\(window.id)", label: sample.label, windowName: window.name, date: date)
             }
         }
         .sorted { $0.date < $1.date }

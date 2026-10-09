@@ -56,6 +56,65 @@ final class UsageDecodingTests: XCTestCase {
         XCTAssertNil(snapshot.results[1].sample)
     }
 
+    func testDecodesNullResetTimestampForStaleClaudeSample() throws {
+        let data = Data(#"""
+        {
+          "generated_at": "2026-10-09T20:42:00Z",
+          "counts": { "cache": 0, "error": 0, "live": 0, "stale": 1 },
+          "results": [{
+            "account_id": "claude-1",
+            "status": "stale",
+            "sample": {
+              "account_id": "claude-1",
+              "provider": "Claude",
+              "label": "Claude account",
+              "observed_at": "2026-10-09T20:40:00Z",
+              "age_seconds": 7200,
+              "windows": [{
+                "id": "five-hour",
+                "name": "Five-hour window",
+                "used_percent": 42.6,
+                "resets_at": null,
+                "window_seconds": 18000
+              }]
+            }
+          }]
+        }
+        """#.utf8)
+
+        let snapshot = try JSONDecoder().decode(UsageSnapshot.self, from: data)
+
+        XCTAssertEqual(snapshot.results[0].status, .stale)
+        XCTAssertNil(snapshot.results[0].sample?.windows[0].resetsAt)
+        XCTAssertEqual(UsageFormatters.resetText(for: snapshot.results[0].sample?.windows[0].resetsAt), "Not reported")
+        XCTAssertEqual(UsageFormatters.resetAccessibilityText(for: snapshot.results[0].sample?.windows[0].resetsAt), "reset time not reported")
+    }
+
+    func testDecodesOmittedResetTimestamp() throws {
+        let data = Data(#"""
+        {
+          "id": "weekly",
+          "name": "Weekly window",
+          "used_percent": 9,
+          "window_seconds": 604800
+        }
+        """#.utf8)
+
+        let window = try JSONDecoder().decode(UsageWindow.self, from: data)
+
+        XCTAssertNil(window.resetsAt)
+    }
+
+    @MainActor
+    func testAgendaIncludesOnlyReportedResetTimestamps() {
+        let unreported = UsageWindow(id: "five-hour", name: "Five-hour window", usedPercent: 42.6, resetsAt: nil, windowSeconds: 18_000)
+        let reported = UsageWindow(id: "weekly", name: "Weekly window", usedPercent: 9, resetsAt: Date(timeIntervalSince1970: 2_000), windowSeconds: 604_800)
+        let sample = UsageSample(accountID: "account", provider: "Claude", label: "Claude account", plan: nil, observedAt: Date(timeIntervalSince1970: 1_000), ageSeconds: 60, windows: [unreported, reported], hasDiagnostics: false)
+        let results = [UsageResult(accountID: "account", status: .stale, sample: sample, hasError: false)]
+
+        XCTAssertEqual(ResetAgenda.reportedEntries(from: results).map(\.windowName), ["Weekly window"])
+    }
+
     func testRejectsNonISO8601Timestamp() {
         XCTAssertThrowsError(try TimestampCodec.date(from: "not-a-date"))
     }
