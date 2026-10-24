@@ -26,7 +26,7 @@ targets:
           - Resources/InfoVision.plist
     settings:
       base:
-        PRODUCT_BUNDLE_IDENTIFIER: com.example.seldon
+        PRODUCT_BUNDLE_IDENTIFIER: co.clicketyclacks.Seldon
         ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
         GENERATE_INFOPLIST_FILE: NO
         INFOPLIST_FILE: Seldon/Resources/Info.plist
@@ -60,7 +60,7 @@ targets:
       - target: Seldon
     settings:
       base:
-        PRODUCT_BUNDLE_IDENTIFIER: com.example.seldon.tests
+        PRODUCT_BUNDLE_IDENTIFIER: co.clicketyclacks.Seldon.tests
         GENERATE_INFOPLIST_FILE: YES
   SeldonVisionTests:
     type: bundle.unit-test
